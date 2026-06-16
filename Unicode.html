@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unicode Explorer Expert Pro</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f4f6f9;
+            margin: 6px;
+            color: #333;
+            font-size: 13px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            font-size: 1.1rem;
+            margin: 4px 0 2px 0;
+        }
+        .controls {
+            background: #ffffff;
+            padding: 6px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        .menus-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .row-inputs {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            gap: 4px;
+        }
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 65px;
+            flex-shrink: 0;
+            align-items: center;
+        }
+        .input-wrapper.paste-box {
+            width: 50px;
+        }
+        .input-wrapper span {
+            font-size: 0.55rem;
+            color: #7f8c8d;
+            font-weight: bold;
+            margin-bottom: 1px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        select, input {
+            padding: 5px 2px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            width: 100%;
+            box-sizing: border-box;
+            height: 28px;
+        }
+        input[type="text"], input[type="number"] {
+            font-family: monospace;
+            text-align: center;
+        }
+        input[type="text"] {
+            text-transform: uppercase;
+        }
+        button.nav-btn {
+            font-size: 0.9rem;
+            border: none;
+            background-color: #2ecc71;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            flex-grow: 2;
+            height: 38px;
+            align-self: flex-end;
+        }
+        button.nav-btn:active {
+            background-color: #27ae60;
+        }
+        .grid-container {
+            background: white;
+            padding: 2px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #e8e8e8;
+            text-align: center;
+            padding: 4px 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+            font-family: monospace;
+            font-size: 0.65rem;
+        }
+        .row-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            font-family: monospace;
+            color: #7f8c8d;
+            font-size: 0.55rem;
+            width: 60px;
+        }
+        .char-cell {
+            font-size: 1.1rem;
+            cursor: pointer;
+            background-color: #fff;
+            user-select: all; 
+            -webkit-user-select: all;
+        }
+        .char-cell.highlight {
+            background-color: #e67e22 !important;
+            color: white !important;
+            animation: pulse 1s infinite alternate;
+            font-weight: bold;
+            border: 2px solid #d35400;
+        }
+        @keyframes pulse {
+            from { opacity: 1; }
+            to { opacity: 0.5; }
+        }
+        .special-char {
+            color: #95a5a6;
+            font-size: 0.5rem;
+            font-style: italic;
+            background-color: #fdfefe;
+            font-family: monospace;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 12px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 260px;
+            text-align: center;
+        }
+        .modal-char {
+            font-size: 2.5rem;
+            margin: 5px 0;
+            color: #2c3e50;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Unicode Explorer Expert</h1>
+    
+    <div class="controls">
+        <div class="menus-container">
+            <select id="group-select" onchange="mettreAJourSousGroupes()">
+                <option value="">-- Sélectionner un groupe --</option>
+                <option value="europe">Écritures Européennes & Phonétique</option>
+                <option value="moyen_orient">Écritures du Moyen-Orient</option>
+                <option value="asie_indienne">Écritures Indiennes & Sud-Asiatiques</option>
+                <option value="asie_pacifique">Écritures d'Asie & Pacifique</option>
+                <option value="sinogrammes_blocs">Sinogrammes & Asie Orientale</option>
+                <option value="symboles">Émojis, Jeux & Symboles Modernes</option>
+                <option value="antiques">Écritures Antiques & Archéologiques</option>
+                <option value="afrique_regionales">Écritures Régionales (Afrique & Asie)</option>
+                <option value="indirection_prive">Zones d'Indirection & Usage Privé</option>
+            </select>
+
+            <select id="block-select" onchange="synchroniserChoix(this.value)" disabled>
+                <option value="">-- Choisissez d'abord un groupe --</option>
+            </select>
+        </div>
+
+        <div class="row-inputs">
+            <button class="nav-btn" onclick="ajusterBloc(-256)">◀ -256</button>
+            
+            <div class="input-wrapper">
+                <span>HEXA</span>
+                <input type="text" id="input-hexa" value="U+0000" oninput="evenementSaisieHexa()">
+            </div>
+            
+            <div class="input-wrapper">
+                <span>DÉCIMAL</span>
+                <input type="number" id="input-decimal" value="0" oninput="evenementSaisieDecimal()">
+            </div>
+
+            <div class="input-wrapper paste-box">
+                <span style="color:#e67e22;">COLLER</span>
+                <input type="text" id="input-paste" placeholder="Ex: ♫" oninput="analyserCaractereColle(this.value)">
+            </div>
+
+            <button class="nav-btn" onclick="ajusterBloc(256)">+256 ▶</button>
+        </div>
+    </div>
+
+    <div class="grid-container">
+        <table>
+            <thead>
+                <tr id="grid-header"></tr>
+            </thead>
+            <tbody id="grid-body"></tbody>
+        </table>
+    </div>
+
+    <div id="info-modal" class="modal" onclick="fermerModal(true)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div id="modal-char-display" class="modal-char">-</div>
+            <div style="font-size:0.8rem; text-align:left; margin-top:5px;">
+                Hex : <strong id="info-hex" style="color:#e67e22;"></strong><br>
+                Déc : <strong id="info-dec" style="color:#e67e22;"></strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let codeCourantDeDepart = 0;
+        let pointAEnsurbriller = 0;
+
+        const asciiControls = {
+            0: "NUL", 1: "SOH", 2: "STX", 3: "ETX", 4: "EOT", 5: "ENQ", 6: "ACK", 7: "BEL",
+            8: "BS", 9: "HT", 10: "LF", 11: "VT", 12: "FF", 13: "CR", 14: "SO", 15: "SI",
+            16: "DLE", 17: "DC1", 18: "DC2", 19: "DC3", 20: "DC4", 21: "NAK", 22: "SYN",
+            23: "ETB", 24: "CAN", 25: "EM", 26: "SUB", 27: "ESC", 28: "FS", 29: "GS",
+            30: "RS", 31: "US", 32: "Spc", 127: "DEL"
+        };
+
+        // Base de données intégrale des groupes et sous-ensembles
+        const donneesGroupes = {
+            europe: [
+                { val: "0", texte: "U+0000 : Commandes C0" },
+                { val: "32", texte: "U+0020 : Latin de base" },
+                { val: "128", texte: "U+0080 : Commandes C1" },
+                { val: "160", texte: "U+00A0 : Suppl. Latin-1" },
+                { val: "256", texte: "U+0100 : Latin étendu A" },
+                { val: "384", texte: "U+0180 : Latin étendu B" },
+                { val: "592", texte: "U+0250 : Phonétique API" },
+                { val: "688", texte: "U+02B0 : Lettres modif." },
+                { val: "768", texte: "U+0300 : Diacritiques" },
+                { val: "880", texte: "U+0370 : Grec et copte" },
+                { val: "1024", texte: "U+0400 : Cyrillique" },
+                { val: "1280", texte: "U+0500 : Cyrillique Suppl." },
+                { val: "6832", texte: "U+1AB0 : Diacritiques Compl." },
+                { val: "7296", texte: "U+1C80 : Cyrillique étendu C" },
+                { val: "7424", texte: "U+1D00 : Latin phonétique Suppl." },
+                { val: "7552", texte: "U+1D80 : Latin phonétique étendu" },
+                { val: "7616", texte: "U+1DC0 : Diacritiques Suppl." },
+                { val: "7680", texte: "U+1E00 : Latin étendu additionnel" },
+                { val: "7936", texte: "U+1F00 : Grec étendu" },
+                { val: "11360", texte: "U+2C60 : Latin étendu C" }
+            ],
+            moyen_orient: [
+                { val: "1328", texte: "U+0530 : Arménien" },
+                { val: "1424", texte: "U+0590 : Hébreu" },
+                { val: "1536", texte: "U+0600 : Arabe" },
+                { val: "1792", texte: "U+0700 : Syriaque" },
+                { val: "1872", texte: "U+0750 : Arabe Suppl." },
+                { val: "1920", texte: "U+0780 : Thâna" },
+                { val: "1984", texte: "U+07C0 : N’ko" },
+                { val: "2048", texte: "U+0800 : Samaritain" },
+                { val: "2112", texte: "U+0840 : Mandéen" },
+                { val: "2144", texte: "U+0860 : Syriaque Suppl." },
+                { val: "2208", texte: "U+08A0 : Arabe étendu A" },
+                { val: "11392", texte: "U+2C80 : Copte" },
+                { val: "64336", texte: "U+FB50 : Formes présentation arabes A" },
+                { val: "65008", texte: "U+FDF0 : Formes présentation arabes A (Suite)" },
+                { val: "65136", texte: "U+FE70 : Formes présentation arabes B" }
+            ],
+            asie_indienne: [
+                { val: "2304", texte: "U+0900 : Dévanâgarî" },
+                { val: "2432", texte: "U+0980 : Bengali" },
+                { val: "2560", texte: "U+0A00 : Gourmoukhî" },
+                { val: "2688", texte: "U+0A80 : Goudjarati" },
+                { val: "2816", texte: "U+0B00 : Oriya" },
+                { val: "2944", texte: "U+0B80 : Tamoul" },
+                { val: "3072", texte: "U+0C00 : Télougou" },
+                { val: "3200", texte: "U+0C80 : Kannara" },
+                { val: "3328", texte: "U+0D00 : Malayâlam" },
+                { val: "3456", texte: "U+0D80 : Singhalais" },
+                { val: "7376", texte: "U+1CD0 : Dévanâgarî Védique" },
+                { val: "69632", texte: "U+11000 : Brahmî" },
+                { val: "69760", texte: "U+11080 : Kaïthî" },
+                { val: "69840", texte: "U+110D0 : Sora sompeng" },
+                { val: "69888", texte: "U+11100 : Chakma" },
+                { val: "69968", texte: "U+11150 : Mahâjanî" },
+                { val: "70016", texte: "U+11180 : Charada" },
+                { val: "70112", texte: "U+111E0 : Singhalais (Nombres)" },
+                { val: "70144", texte: "U+11200 : Khojkî" },
+                { val: "70272", texte: "U+11280 : Multanais" },
+                { val: "70320", texte: "U+112B0 : Khoudawadî" },
+                { val: "70400", texte: "U+11300 : Grantha" },
+                { val: "70656", texte: "U+11400 : Néwar" },
+                { val: "70784", texte: "U+11480 : Tirhouta" },
+                { val: "71040", legacy: "U+11580 : Siddham" },
+                { val: "71168", texte: "U+11600 : Modi" },
+                { val: "71296", texte: "U+11680 : Tâkrî" },
+                { val: "71424", texte: "U+11700 : Âhom" },
+                { val: "72448", texte: "U+11B00 : Dévanagari étendu A" },
+                { val: "72704", texte: "U+11C00 : Bhaïksukî" },
+                { val: "72816", texte: "U+11C70 : Marchen" },
+                { val: "72960", texte: "U+11D00 : Gondi de Masaram" },
+                { val: "73056", texte: "U+11D60 : Gondi de Gunjala" }
+            ],
+            asie_pacifique: [
+                { val: "3584", texte: "U+0E00 : Thaï" },
+                { val: "3712", texte: "U+0E80 : Lao" },
+                { val: "3840", texte: "U+0F00 : Tibétain" },
+                { val: "4096", texte: "U+1000 : Birman" },
+                { val: "4256", texte: "U+10A0 : Géorgien" },
+                { val: "7312", texte: "U+1C90 : Géorgien étendu" },
+                { val: "11520", texte: "U+2D00 : Géorgien supplément" },
+                { val: "5888", texte: "U+1700 : Tagalog" },
+                { val: "5920", texte: "U+1720 : Hanounóo" },
+                { val: "5952", texte: "U+1740 : Bouhide" },
+                { val: "5984", texte: "U+1760 : Tagbanoua" },
+                { val: "6016", texte: "U+1780 : Khmer" },
+                { val: "6144", texte: "U+1800 : Mongol" },
+                { val: "6400", texte: "U+1900 : Limbou" },
+                { val: "6480", texte: "U+1950 : Taï-le" },
+                { val: "6528", texte: "U+1980 : Nouveau taï-lue" },
+                { val: "6656", texte: "U+1A00 : Bougui" },
+                { val: "6688", texte: "U+1A20 : Taï tham" },
+                { val: "6912", texte: "U+1B00 : Balinais" },
+                { val: "7040", texte: "U+1B80 : Soundanais" },
+                { val: "7104", texte: "U+1BC0 : Batak" },
+                { val: "7168", texte: "U+1C00 : Lepcha" },
+                { val: "7360", texte: "U+1CC0 : Soundanais Suppl." },
+                { val: "71264", texte: "U+11660 : Mongol supplément" },
+                { val: "71936", texte: "U+11900 : Dives akuru" },
+                { val: "72192", texte: "U+11A00 : Zanabazar quadratique" },
+                { val: "72272", texte: "U+11A50 : Soyombo" },
+                { val: "72384", texte: "U+11AC0 : Pau cin hau" }
+            ],
+            sinogrammes_blocs: [
+                { val: "11904", texte: "U+2E80 : Clés CJC supplément" },
+                { val: "12032", texte: "U+2F00 : Clés Kangxi" },
+                { val: "12272", texte: "U+2FF0 : CJC descr." },
+                { val: "12288", texte: "U+3000 : Symboles & Ponctuation CJC" },
+                { val: "12352", texte: "U+3040 : Hiragana" },
+                { val: "12448", texte: "U+30A0 : Katakana" },
+                { val: "12544", texte: "U+3100 : Bopomofo" },
+                { val: "12592", texte: "U+3130 : Hangûl (Jamos de comp.)" },
+                { val: "12688", texte: "U+3190 : Kanboun" },
+                { val: "12704", texte: "U+31A0 : Bopomofo étendu" },
+                { val: "12736", texte: "U+31C0 : Sinogrammes CJC (Traits)" },
+                { val: "12784", texte: "U+31F0 : Katakana (Suppl.)" },
+                { val: "12800", texte: "U+3200 : Lettres & mois CJC" },
+                { val: "13056", texte: "U+3300 : Sinogrammes de comp. CJC" },
+                { val: "13312", texte: "U+3400 : Sinogrammes unifiés Suppl. A" },
+                { val: "19904", texte: "U+4DC0 : Hexagrammes du Yi-king" },
+                { val: "19968", texte: "U+4E00 : Sinogrammes unifiés (Principal)" },
+                { val: "4352",  texte: "U+1100 : Hangûl (Jamos)" },
+                { val: "44032", texte: "U+AC00 : Hangûl Syllabes" },
+                { val: "55216", texte: "U+D7B0 : Hangûl Jamos étendus B" },
+                { val: "63744", texte: "U+F900 : Sinogrammes de comp. CJC" },
+                { val: "65072", texte: "U+FE30 : Formes de compatibilité CJC" },
+                { val: "94112", texte: "U+16FA0 : Bopomofo étendu A" },
+                { val: "94176", texte: "U+16FE0 : Symboles ponct. idéographiques" },
+                { val: "94208", texte: "U+17000 : Idéogrammes tangoutes" }
+            ],
+            symboles: [
+                { val: "8192", texte: "U+2000 : Ponctuation générale" },
+                { val: "8304", texte: "U+2070 : Exposants et indices" },
+                { val: "8352", texte: "U+20A0 : Symboles monétaires" },
+                { val: "8400", texte: "U+20D0 : Diacritiques pour symboles" },
+                { val: "8448", texte: "U+2100 : Symboles lettrés" },
+                { val: "8528", texte: "U+2150 : Formes numérales" },
+                { val: "8592", texte: "U+2190 : Flèches de base" },
+                { val: "8704", texte: "U+2200 : Opérateurs mathématiques" },
+                { val: "8960", texte: "U+2300 : Signes techniques divers" },
+                { val: "9216", texte: "U+2400 : Pictogrammes de commande" },
+                { val: "9280", texte: "U+2440 : Reconnaissance optique (OCR)" },
+                { val: "9312", texte: "U+2460 : Alphanumériques cerclés" },
+                { val: "9472", texte: "U+2500 : Filets et bordures" },
+                { val: "9600", texte: "U+2580 : Pavés et blocs" },
+                { val: "9632", texte: "U+25A0 : Formes géométriques" },
+                { val: "9728", texte: "U+2600 : Symboles divers" },
+                { val: "9840", texte: "U+2700 : Casseau (Ciseaux, Étoiles)" },
+                { val: "10176", texte: "U+27C0 : Symboles math. divers A" },
+                { val: "10224", texte: "U+27F0 : Flèches supplément A" },
+                { val: "10240", texte: "U+2800 : Combinaisons Braille" },
+                { val: "10496", texte: "U+2900 : Flèches supplément B" },
+                { val: "10624", texte: "U+2980 : Symboles math. divers B" },
+                { val: "10752", texte: "U+2A00 : Opérateurs math. suppl." },
+                { val: "11008", texte: "U+2B00 : Symboles et flèches divers" },
+                { val: "126976", texte: "U+1F000 : Pièces de mah-jong" },
+                { val: "127024", texte: "U+1F030 : Dominos" },
+                { val: "127136", texte: "U+1F0A0 : Cartes à jouer" },
+                { val: "127232", texte: "U+1F100 : Alphanumériques entourés" },
+                { val: "127488", texte: "U+1F200 : Sinogrammes entourés" },
+                { val: "127744", texte: "U+1F300 : Symboles & Pictogrammes" },
+                { val: "128512", texte: "U+1F600 : Émojis et Émoticônes" },
+                { val: "128592", texte: "U+1F650 : Casseau ornemental" },
+                { val: "128640", texte: "U+1F680 : Transport et émojis" },
+                { val: "128768", texte: "U+1F700 : Symboles alchimiques" },
+                { val: "128896", texte: "U+1F780 : Formes géométriques étendues" },
+                { val: "129024", texte: "U+1F800 : Flèches supplément C" },
+                { val: "129280", texte: "U+1F900 : Symboles & Pictogrammes suppl." },
+                { val: "129536", texte: "U+1FA00 : Symboles des échecs" },
+                { val: "129648", texte: "U+1FA70 : Symboles & Pictogrammes compl. A" },
+                { val: "129792", texte: "U+1FBF0 : Informatiques patrimoniaux" }
+            ],
+            antiques: [
+                { val: "5792", texte: "U+16A0 : Runes Vikings" },
+                { val: "11264", texte: "U+2C00 : Glagolitique" },
+                { val: "73728", texte: "U+12000 : Cunéiforme" },
+                { val: "74752", texte: "U+12400 : Nombres cunéiformes" },
+                { val: "74880", texte: "U+12480 : Cunéiforme dynastique archaïque" },
+                { val: "75264", texte: "U+12600 : Protocunéiforme" },
+                { val: "77824", texte: "U+13000 : Hiéroglyphes égyptiens" },
+                { val: "87040", texte: "U+15400 : Hiéroglyphes mayas" },
+                { val: "89088", texte: "U+15C00 : Pictogrammes aztèques" }
+            ],
+            afrique_regionales: [
+                { val: "4608", texte: "U+1200 : Éthiopien" },
+                { val: "4992", texte: "U+1380 : Éthiopien Suppl." },
+                { val: "5024", texte: "U+13A0 : Chérokie" },
+                { val: "5120", texte: "U+1400 : Autochtones canadiens" },
+                { val: "5760", texte: "U+1680 : Ogam" },
+                { val: "6320", texte: "U+18B0 : Autochtones canadiens Ext." },
+                { val: "11568", texte: "U+2D30 : Tifinagh" },
+                { val: "11648", texte: "U+2D80 : Éthiopien étendu" },
+                { val: "71680", texte: "U+11800 : Dogra" },
+                { val: "71840", texte: "U+118A0 : Warang citi" },
+                { val: "92160", texte: "U+16800 : Supplément Bamoun" },
+                { val: "92736", texte: "U+16A40 : Mrou" },
+                { val: "92880", texte: "U+16AD0 : Vah bassa" },
+                { val: "93056", texte: "U+16B90 : Pahawh hmong" },
+                { val: "93760", texte: "U+16E40 : Médéfidrin" },
+                { val: "93952", texte: "U+16F00 : Miao" }
+            ],
+            indirection_prive: [
+                { val: "55296", texte: "U+D800 : Demi-zone haute d'indirection" },
+                { val: "56320", texte: "U+DC00 : Demi-zone basse d'indirection" },
+                { val: "57344", texte: "U+E000 : Zone à usage privé" },
+                { val: "64256", texte: "U+FB00 : Formes présentation alphabétiques" },
+                { val: "64976", texte: "U+FDD0 : Non-caractères internes" },
+                { val: "65024", texte: "U+FE00 : Sélecteurs de variante" },
+                { val: "65040", texte: "U+FE10 : Formes verticales" },
+                { val: "65056", texte: "U+FE20 : Demi-signes combinatoires" },
+                { val: "65104", texte: "U+FE50 : Petites variantes de forme" },
+                { val: "65280", texte: "U+FF00 : Formes de demi et pleine chasse" },
+                { val: "65520", texte: "U+FFF0 : Caractères spéciaux" },
+                { val: "65534", texte: "U+FFFE : Non-caractères fin de plan 0" }
+            ]
+        };
+
+        function initialiserEntete() {
+            const header = document.getElementById('grid-header');
+            let html = '<th style="width: 60px;">Ligne</th>';
+            for (let i = 0; i <= 15; i++) {
+                html += `<th>${i.toString(16).toUpperCase()}</th>`;
+            }
+            header.innerHTML = html;
+        }
+
+        function mettreAJourSousGroupes() {
+            const groupeSelect = document.getElementById('group-select');
+            const blockSelect = document.getElementById('block-select');
+            const selection = groupeSelect.value;
+
+            blockSelect.innerHTML = '';
+
+            if (selection === '') {
+                blockSelect.innerHTML = '<option value="">-- Choisissez d\'abord un groupe --</option>';
+                blockSelect.disabled = true;
+                return;
+            }
+
+            blockSelect.disabled = false;
+            let optInit = document.createElement('option');
+            optInit.value = "";
+            optInit.textContent = "-- Sélectionner le sous-ensemble --";
+            blockSelect.appendChild(optInit);
+
+            donneesGroupes[selection].forEach(item => {
+                let opt = document.createElement('option');
+                opt.value = item.val;
+                opt.textContent = item.texte;
+                blockSelect.appendChild(opt);
+            });
+        }
+
+        function rafraichirChampsSaisie(dec) {
+            document.getElementById('input-decimal').value = dec;
+            document.getElementById('input-hexa').value = "U+" + dec.toString(16).toUpperCase().padStart(4, '0');
+        }
+
+        function analyserCaractereColle(texte) {
+            if (!texte) return;
+            let codePoint = texte.codePointAt(0);
+            if (codePoint !== undefined) {
+                pointAEnsurbriller = codePoint;
+                codeCourantDeDepart = Math.floor(codePoint / 256) * 256;
+                rafraichirChampsSaisie(codePoint);
+                genererGrille(codeCourantDeDepart);
+                setTimeout(() => { document.getElementById('input-paste').value = ""; }, 1000);
+            }
+        }
+
+        function evenementSaisieHexa() {
+            let saisie = document.getElementById('input-hexa').value.trim().toUpperCase().replace(/^U\+/, '');
+            let valeurDec = parseInt(saisie, 16);
+            if (!isNaN(valeurDec)) {
+                valeurDec = Math.max(0, Math.min(valeurDec, 1114000));
+                pointAEnsurbriller = valeurDec;
+                codeCourantDeDepart = Math.floor(valeurDec / 256) * 256;
+                document.getElementById('input-decimal').value = valeurDec;
+                genererGrille(codeCourantDeDepart);
+            }
+        }
+
+        function evenementSaisieDecimal() {
+            let valeurDec = parseInt(document.getElementById('input-decimal').value);
+            if (!isNaN(valeurDec)) {
+                valeurDec = Math.max(0, Math.min(valeurDec, 1114000));
+                pointAEnsurbriller = valeurDec;
+                codeCourantDeDepart = Math.floor(valeurDec / 256) * 256;
+                document.getElementById('input-hexa').value = "U+" + valeurDec.toString(16).toUpperCase().padStart(4, '0');
+                genererGrille(codeCourantDeDepart);
+            }
+        }
+
+        function synchroniserChoix(valeur) {
+            if (!valeur) return;
+            let dec = parseInt(valeur);
+            codeCourantDeDepart = dec;
+            pointAEnsurbriller = dec; 
+            rafraichirChampsSaisie(dec);
+            genererGrille(codeCourantDeDepart);
+        }
+
+        function ajusterBloc(valeur) {
+            pointAEnsurbriller += valeur;
+            pointAEnsurbriller = Math.max(0, Math.min(pointAEnsurbriller, 1114000));
+            codeCourantDeDepart = Math.floor(pointAEnsurbriller / 256) * 256;
+            
+            rafraichirChampsSaisie(pointAEnsurbriller);
+            genererGrille(codeCourantDeDepart);
+        }
+
+        function genererGrille(debut) {
+            let startRow = Math.floor(debut / 256) * 256;
+            let fin = startRow + 255;
+
+            const tbody = document.getElementById('grid-body');
+            tbody.innerHTML = "";
+
+            for (let r = startRow; r <= fin; r += 16) {
+                let tr = document.createElement('tr');
+                let hexPart = r.toString(16).toUpperCase().padStart(4, '0').slice(0, -1);
+                
+                let tdHead = document.createElement('td');
+                tdHead.className = 'row-header';
+                tdHead.innerHTML = `U+${hexPart}_<br><span style="color:#2ecc71;font-size:0.5rem;">(${r})</span>`;
+                tr.appendChild(tdHead);
+
+                for (let c = 0; c < 16; c++) {
+                    let codePoint = r + c;
+                    let td = document.createElement('td');
+
+                    if (codePoint === pointAEnsurbriller) {
+                        td.className = 'char-cell highlight';
+                    } else if (asciiControls[codePoint] !== undefined) {
+                        td.className = 'special-char';
+                    } else {
+                        td.className = 'char-cell';
+                    }
+
+                    if (asciiControls[codePoint] !== undefined) {
+                        td.textContent = asciiControls[codePoint];
+                    } else {
+                        try { td.textContent = String.fromCodePoint(codePoint); } catch(e) { td.textContent = ""; }
+                    }
+                    
+                    td.onclick = () => {
+                        document.querySelectorAll('.char-cell').forEach(el => el.classList.remove('highlight'));
+                        td.classList.add('highlight');
+                        pointAEnsurbriller = codePoint;
+                        rafraichirChampsSaisie(codePoint);
+                        afficherInfos(codePoint);
+                    };
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+        }
+
+        function afficherInfos(code) {
+            const modal = document.getElementById('info-modal');
+            document.getElementById('info-dec').textContent = code;
+            document.getElementById('info-hex').textContent = "U+" + code.toString(16).toUpperCase().padStart(4, '0');
+            const display = document.getElementById('modal-char-display');
+            
+            if (asciiControls[code] !== undefined) {
+                display.innerHTML = `<span style="font-size:1.1rem; color:#7f8c8d;">${asciiControls[code]}</span>`;
+            } else {
+                try { display.textContent = String.fromCodePoint(code); } catch(e) { display.textContent = "?"; }
+            }
+            modal.style.display = "flex";
+        }
+
+        function fermerModal(force = false) {
+            if (force) document.getElementById('info-modal').style.display = "none";
+        }
+
+        window.onload = function() {
+            initialiserEntete();
+            genererGrille(0);
+            rafraichirChampsSaisie(0);
+        };
+    </script>
+</body>
+</html>
