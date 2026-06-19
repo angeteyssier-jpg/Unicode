@@ -261,14 +261,13 @@
         }
         .user-list th { background: var(--primary); color: white; font-size: 0.75rem;}
         .user-list .char-preview { font-size: 1.6rem; text-align: center; width: 46px; vertical-align: middle; }
-        .char-preview .cp-glyph { line-height: 1; }
-        .btn-eye {
-            background: var(--primary); color: #fff; border: none;
-            border-radius: 4px; font-size: 0.9rem; padding: 2px 6px;
-            margin-top: 4px; cursor: pointer;
-        }
-        .btn-eye:active { background: var(--accent); }
-        .bottom-panel.flash { box-shadow: 0 0 0 3px var(--accent); }
+        .char-preview .cp-glyph { line-height: 1; cursor: pointer; border-radius: 6px; padding: 4px 2px; }
+        .char-preview .cp-glyph:active { background: #f0e2d2; }
+        .user-list tr.row-selected td { background: #fdebd0; }
+        .user-list tr.row-selected td:first-child { box-shadow: inset 4px 0 0 var(--accent); }
+        body.mode-liste .dpad .btn-left,
+        body.mode-liste .dpad .btn-right { visibility: hidden; }
+        body.mode-liste #btn-add-selection { display: none; }
         
         input.name-input {
             width: 100%;
@@ -387,7 +386,7 @@
     <div class="info-bar">
         <div>Hex : <strong id="info-hex">U+0000</strong></div>
         <div>Déc : <strong id="info-dec">0</strong></div>
-        <button class="btn-action btn-save" onclick="ajouterALaListe()">+ Sélection</button>
+        <button id="btn-add-selection" class="btn-action btn-save" onclick="ajouterALaListe()">+ Sélection</button>
         <div class="copy-status" id="copy-status">Copié !</div>
     </div>
     
@@ -446,6 +445,33 @@
                     <option value="129648">U+1FA70 : Pictogrammes étendus (🩰 🪐)</option>
                     <option value="127462">U+1F1E6 : Drapeaux (indicateurs régionaux)</option>
                 </optgroup>
+                <optgroup label="— Alphabets du monde —">
+                    <option value="1488">U+05D0 : Hébreu (א ב ג)</option>
+                    <option value="1536">U+0600 : Arabe (ا ب ت)</option>
+                    <option value="2304">U+0900 : Devanagari / Hindi (अ आ)</option>
+                    <option value="1328">U+0530 : Arménien (Ա Բ)</option>
+                    <option value="4256">U+10A0 : Géorgien (ა ბ)</option>
+                    <option value="3584">U+0E00 : Thaï (ก ข ฃ)</option>
+                    <option value="3840">U+0F00 : Tibétain (ཀ ཁ)</option>
+                    <option value="12352">U+3040 : Hiragana (あ い う)</option>
+                    <option value="12448">U+30A0 : Katakana (ア イ ウ)</option>
+                    <option value="19968">U+4E00 : Chinois / CJK (一 二 三)</option>
+                    <option value="44032">U+AC00 : Coréen / Hangul (가 나)</option>
+                </optgroup>
+                <optgroup label="— Écritures anciennes & runes —">
+                    <option value="77824">U+13000 : Hiéroglyphes égyptiens (𓀀 𓀍)</option>
+                    <option value="73728">U+12000 : Cunéiforme (𒀀 𒀁)</option>
+                    <option value="5792">U+16A0 : Runes (ᚠ ᚢ ᚦ)</option>
+                    <option value="5760">U+1680 : Ogham (ᚁ ᚂ ᚃ)</option>
+                    <option value="5024">U+13A0 : Cherokee (Ꭰ Ꭱ)</option>
+                    <option value="11264">U+2C00 : Glagolitique (Ⰰ Ⰱ)</option>
+                    <option value="11392">U+2C80 : Copte (Ⲁ ⲁ)</option>
+                    <option value="67840">U+10900 : Phénicien (𐤀 𐤁)</option>
+                    <option value="66352">U+10330 : Gotique (𐌰 𐌱)</option>
+                </optgroup>
+                <optgroup label="— Lettres décoratives —">
+                    <option value="119808">U+1D400 : Maths & fantaisie (𝐀 𝔸 𝓐)</option>
+                </optgroup>
             </select>
 
             <div class="row-inputs">
@@ -495,7 +521,6 @@
                     <tr>
                         <th class="char-preview">Voir</th>
                         <th>Nom personnalisé</th>
-                        <th style="width: 150px; text-align: center;">Copie</th>
                         <th style="width: 35px; text-align: center;">X</th>
                     </tr>
                 </thead>
@@ -517,9 +542,9 @@
         </div>
         
         <div class="dpad">
-            <button class="btn-up" onclick="deplacer(0, -8)">▲</button>
+            <button class="btn-up" onclick="flecheHaut()">▲</button>
             <button class="btn-left" onclick="deplacer(-1, 0)">◀</button>
-            <button class="btn-down" onclick="deplacer(0, 8)">▼</button>
+            <button class="btn-down" onclick="flecheBas()">▼</button>
             <button class="btn-right" onclick="deplacer(1, 0)">▶</button>
         </div>
     </div>
@@ -529,6 +554,7 @@
         let codeCourantDeDepart = 0;
         let pointAEnsurbriller = 0;
         let maListeSauvegardee = [];
+        let elementListeSelectionne = null;
 
         const asciiControls = {
             0: "NUL", 1: "SOH", 2: "STX", 3: "ETX", 4: "EOT", 5: "ENQ", 6: "ACK", 7: "BEL",
@@ -543,6 +569,7 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(idPage).classList.add('active');
             elementBouton.classList.add('active');
+            document.body.classList.toggle('mode-liste', idPage === 'page-liste');
             if(idPage === 'page-liste') afficherListePerso();
         }
 
@@ -603,7 +630,6 @@
         function ajouterALaListe() {
             if(!maListeSauvegardee.some(item => item.code === pointAEnsurbriller)) {
                 maListeSauvegardee.push({ code: pointAEnsurbriller, name: "" });
-                maListeSauvegardee.sort((a,b) => a.code - b.code);
                 localStorage.setItem('monUnicodeRegistryPro', JSON.stringify(maListeSauvegardee));
                 document.getElementById('list-count').textContent = maListeSauvegardee.length;
                 
@@ -613,28 +639,75 @@
             }
         }
 
-        function sauvegarderNomsDansStockage() {
+        function capturerNomsSaisis() {
             maListeSauvegardee.forEach(item => {
                 const inputEl = document.getElementById(`name-input-${item.code}`);
                 if(inputEl) item.name = inputEl.value;
             });
+        }
+
+        function sauvegarderNomsDansStockage() {
+            capturerNomsSaisis();
             localStorage.setItem('monUnicodeRegistryPro', JSON.stringify(maListeSauvegardee));
             alert("Noms enregistrés !");
             afficherListePerso();
         }
 
+        function deplacerElement(codePoint, sens) {
+            const i = maListeSauvegardee.findIndex(item => item.code === codePoint);
+            const j = i + sens;
+            if (i < 0 || j < 0 || j >= maListeSauvegardee.length) return;
+            capturerNomsSaisis();
+            const tmp = maListeSauvegardee[i];
+            maListeSauvegardee[i] = maListeSauvegardee[j];
+            maListeSauvegardee[j] = tmp;
+            localStorage.setItem('monUnicodeRegistryPro', JSON.stringify(maListeSauvegardee));
+            afficherListePerso();
+            const trSel = document.getElementById('row-' + codePoint);
+            if (trSel) trSel.scrollIntoView({ block: 'nearest' });
+        }
+
+        function estPageListe() {
+            return document.getElementById('page-liste').classList.contains('active');
+        }
+
+        function flecheHaut() {
+            if (estPageListe()) { if (elementListeSelectionne !== null) deplacerElement(elementListeSelectionne, -1); }
+            else deplacer(0, -8);
+        }
+
+        function flecheBas() {
+            if (estPageListe()) { if (elementListeSelectionne !== null) deplacerElement(elementListeSelectionne, 1); }
+            else deplacer(0, 8);
+        }
+
         function supprimerDeLaListe(codePoint) {
+            if (elementListeSelectionne === codePoint) elementListeSelectionne = null;
             maListeSauvegardee = maListeSauvegardee.filter(item => item.code !== codePoint);
             localStorage.setItem('monUnicodeRegistryPro', JSON.stringify(maListeSauvegardee));
             document.getElementById('list-count').textContent = maListeSauvegardee.length;
             afficherListePerso();
         }
 
+        function selectionnerElementListe(codePoint) {
+            elementListeSelectionne = codePoint;
+            selectionnerEtAfficher(codePoint);
+            marquerLigneSelectionnee();
+        }
+
+        function marquerLigneSelectionnee() {
+            document.querySelectorAll('#user-list-body tr').forEach(tr => tr.classList.remove('row-selected'));
+            if (elementListeSelectionne !== null) {
+                const tr = document.getElementById('row-' + elementListeSelectionne);
+                if (tr) tr.classList.add('row-selected');
+            }
+        }
+
         function afficherListePerso() {
             const tbody = document.getElementById('user-list-body');
             tbody.innerHTML = "";
             if(maListeSauvegardee.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#7f8c8d;padding:20px;">Aucun élément.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#7f8c8d;padding:20px;">Aucun élément.</td></tr>`;
                 return;
             }
             maListeSauvegardee.forEach(item => {
@@ -646,24 +719,15 @@
 
                 tr.innerHTML = `
                     <td class="char-preview ${estSpecial ? 'special-char' : ''}">
-                        <div class="cp-glyph">${visuel}</div>
-                        <button class="btn-eye" onclick="voirEnBas(${item.code})" title="Afficher en bas (apercu + boutons copier)">👁</button>
+                        <div class="cp-glyph" onclick="selectionnerElementListe(${item.code})" title="Toucher pour sélectionner (affichage en bas + flèches du menu)">${visuel}</div>
                     </td>
                     <td><input type="text" id="name-input-${item.code}" class="name-input" value="${item.name || ''}" placeholder="Note..."></td>
-                    <td style="text-align: center; vertical-align: middle;">
-                        <button class="btn-copy-mini" style="background:#e67e22;" onclick="executerCopieDirecte('color', ${item.code})">Couleur</button>
-                        <button class="btn-copy-mini" style="background:#7f8c8d;" onclick="executerCopieDirecte('text', ${item.code})">N&B</button>
-                    </td>
                     <td style="text-align:center; vertical-align:middle;"><button class="btn-delete" onclick="supprimerDeLaListe(${item.code})">X</button></td>
                 `;
+                tr.id = "row-" + item.code;
                 tbody.appendChild(tr);
             });
-        }
-
-        function voirEnBas(codePoint) {
-            selectionnerEtAfficher(codePoint);
-            const panel = document.querySelector('.bottom-panel');
-            if (panel) { panel.classList.add('flash'); setTimeout(() => panel.classList.remove('flash'), 400); }
+            marquerLigneSelectionnee();
         }
 
         function analyserCaractereColle(texte) {
